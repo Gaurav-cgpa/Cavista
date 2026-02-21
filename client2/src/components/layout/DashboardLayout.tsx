@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Activity, LayoutDashboard, MessageSquare, Salad, Users, Bell, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Activity, LayoutDashboard, MessageSquare, Salad, Users, User, Bell, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { clearToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { label: "Profile", icon: User, path: "/profile" },
   { label: "AI Assistant", icon: MessageSquare, path: "/assistant" },
   { label: "Diet & Lifestyle", icon: Salad, path: "/lifestyle" },
   { label: "Admin View", icon: Users, path: "/admin" },
@@ -14,6 +16,12 @@ const navItems = [
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearToken();
+    navigate("/login");
+  };
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -72,9 +80,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <Bell className="h-5 w-5" />
               <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">3</span>
             </Button>
-            <Link to="/">
-              <Button variant="ghost" size="icon"><LogOut className="h-5 w-5" /></Button>
-            </Link>
+            <Button variant="ghost" size="icon" onClick={handleLogout} title="Log out">
+              <LogOut className="h-5 w-5" />
+            </Button>
           </div>
         </header>
 
