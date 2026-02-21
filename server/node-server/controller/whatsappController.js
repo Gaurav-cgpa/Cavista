@@ -21,7 +21,7 @@ export async function handleIncoming(req, res) {
     }
 
     // Forward WhatsApp body to chatbot API and send API response back to WhatsApp
-    const reply = await getChatbotReply(userMessage);
+    const reply = await getChatbotReply(userMessage, from);
     await sendWhatsAppMessage(from, reply);
 
     res.status(200).send("OK");

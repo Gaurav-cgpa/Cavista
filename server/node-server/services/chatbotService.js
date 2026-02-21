@@ -27,19 +27,25 @@ function getInternalReply(userMessage) {
 /**
  * Get chatbot response for a user message.
  * @param {string} message - User's message
+ * @param {string|number} userId - User's ID (optional, for APIs that require it)
  * @returns {Promise<string>} - Bot reply
  */
-export async function getChatbotReply(message) {
+export async function getChatbotReply(message, userId) {
   const text = (message || "").trim();
   if (!text) return "Please send a message and I'll help you.";
 
   const apiUrl = (process.env.CHATBOT_API_URL || "").trim();
   if (apiUrl) {
     try {
+      // Build request body based on whether userId is provided
+      const requestBody = userId 
+        ? { user_id: String(userId), message: String(text) }
+        : { message: text };
+      
       const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify(requestBody),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {

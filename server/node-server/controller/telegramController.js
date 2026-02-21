@@ -36,10 +36,19 @@ export async function handleWebhook(req, res) {
     console.log(`Processing message from chat ${chatId}: "${userMessage}"`);
 
     // Forward message to chatbot API and send response back to Telegram
-    const reply = await getChatbotReply(userMessage);
-    console.log(`Got reply: "${reply}"`);
-    await sendTelegramMessage(chatId, reply);
-    console.log(`Sent reply to chat ${chatId}`);
+    try {
+      const reply = await getChatbotReply(userMessage, chatId);
+      console.log(`Got reply: "${reply}"`);
+      await sendTelegramMessage(chatId, reply);
+      console.log(`Sent reply to chat ${chatId}`);
+    } catch (innerErr) {
+      console.error("Error in chatbot reply:", innerErr.message);
+      try {
+        await sendTelegramMessage(chatId, "Sorry, something went wrong. Please try again later.");
+      } catch (e) {
+        console.error("Failed to send error message:", e.message);
+      }
+    }
   } catch (err) {
     console.error("Telegram webhook error:", err.message);
     console.error(err.stack);
