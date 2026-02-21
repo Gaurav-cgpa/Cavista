@@ -7,16 +7,16 @@ import authRoute from './route/authRoute.js';
 import userRoute from './route/userRoute.js';
 import elevenlabsRoute from './route/elevenlabsRoute.js';
 
-// 1. Load environment variables
+
 dotenv.config();
 
-// 2. Debug Check (Remove this after it works)
+
 console.log("Checking MONGO_URI:", process.env.MONGO_URI ? "LOADED" : "NOT FOUND");
 
 const PORT = 3001;
 const app = express();
 
-// Middleware
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -25,17 +25,13 @@ app.use(cors({
     credentials: true,
 }));
 
-// Routes
+
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/elevenlabs", elevenlabsRoute);
 
 const startServer = async () => {
     try {
-        // Only attempt connection if URI exists
-        if (!process.env.MONGO_URI) {
-            throw new Error("MONGO_URI is missing from your .env file!");
-        }
 
         await connectDB();
         
