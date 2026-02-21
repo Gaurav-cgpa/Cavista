@@ -10,7 +10,7 @@ import { generateAndStoreVitals } from './controller/dynamicInfoController.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 const app = express();
 
 app.use(express.json());
@@ -31,7 +31,7 @@ app.use("/api/real-time", realTimeRoute);
 */
 cron.schedule("*/3 * * * *", async () => {
     console.log("⏳ Running cron job (every 3 minutes)");
-    await generateAndStoreVitals("P001");
+    await generateAndStoreVitals("6999eb5370efa3e840b7ba71");
 });
 
 const startServer = async () => {

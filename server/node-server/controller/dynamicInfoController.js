@@ -13,12 +13,13 @@ import { sendAlertEmail } from '../utils/email.js';
 | NO alert checking
 | Logs each run to CronJobLog collection
 */
-export const generateAndStoreVitals = async (patientId = "P001") => {
+export const generateAndStoreVitals = async (patientId = "6999eb5370efa3e840b7ba71") => {
     const runAt = new Date();
     const start = Date.now();
 
     try {
         const vitals = generateVitals(patientId);
+        console.log("Generated vitals for", patientId, ":", vitals);
 
         await Vitals.findOneAndUpdate(
             { patientId },
@@ -86,8 +87,11 @@ export const getLastOneDayVitals = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 data: [],
+                timeSeries: [],
                 alerts: [],
-                hasEmergency: false
+                hasEmergency: false,
+                latestReading: null,
+                totalRecords: 0
             });
         }
 
@@ -107,10 +111,27 @@ export const getLastOneDayVitals = async (req, res) => {
             );
         }
 
+        const sortedByTime = [...lastDayData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const timeSeries = sortedByTime.map((log) => {
+            const d = new Date(log.timestamp);
+            const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+            return {
+                time,
+                timestamp: log.timestamp,
+                heartRate: log.data?.heartRate ?? null,
+                systolicBP: log.data?.systolicBP ?? null,
+                diastolicBP: log.data?.diastolicBP ?? null,
+                glucose: log.data?.glucose ?? null,
+                sleepHours: log.data?.sleepHours ?? null
+            };
+        });
+
         return res.status(200).json({
             success: true,
+            record,
             totalRecords: lastDayData.length,
             data: lastDayData,
+            timeSeries,
             alerts: alertResults.alerts,
             hasEmergency: alertResults.hasEmergency,
             latestReading: lastDayData[0] || null

@@ -5,6 +5,6 @@ import {protect} from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/last-day/:patientId", getLastOneDayVitals);
+router.get("/last-day/:patientId", protect, getLastOneDayVitals);
 
 export default router;
