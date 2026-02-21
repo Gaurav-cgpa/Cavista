@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 
 export function Signup() {
-  const [name, setName] = useState('')
+  const [username, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -13,7 +13,7 @@ export function Signup() {
     e.preventDefault()
     
     // Validation
-    if (!name || !email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       setError('All fields are required')
       return
     }
@@ -30,7 +30,22 @@ export function Signup() {
     
     // Handle signup logic here
     setError('')
-    navigate('/')
+    fetch('http://localhost:5000/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data.error || 'Signup failed');
+          return;
+        }
+        navigate('/');
+      })
+      .catch(() => {
+        setError('Network error, please try again');
+      });
   }
 
   const handleNotNow = () => {
@@ -60,7 +75,7 @@ export function Signup() {
               <input
                 type="text"
                 placeholder="John Doe"
-                value={name}
+                value={username}
                 onChange={(e) => setName(e.target.value)}
                 required
                 className="h-11 w-full rounded-xl border border-[rgba(17,24,39,0.12)] bg-[#FEFEFE] px-3 text-sm outline-none transition placeholder:text-[#6B7280] focus:ring-2 focus:ring-[#BB243E]/30"

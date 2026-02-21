@@ -1,101 +1,91 @@
 export function Home() {
-  const stats = [
-    { label: 'Users', value: '1,234' },
-    { label: 'Projects', value: '42' },
-    { label: 'Tasks', value: '789' },
-    { label: 'Completed', value: '95%' },
-  ]
-
-  const features = [
-    {
-      icon: '📊',
-      title: 'Analytics',
-      description: 'Track your progress and metrics in real-time.',
-    },
-    {
-      icon: '⚡',
-      title: 'Performance',
-      description: 'Lightning-fast performance for optimal productivity.',
-    },
-    {
-      icon: '🔒',
-      title: 'Security',
-      description: 'Enterprise-grade security to protect your data.',
-    },
-    {
-      icon: '🎨',
-      title: 'Design',
-      description: 'Beautiful and intuitive user interface.',
-    },
-  ]
-
-  const recentActivity = [
-    { action: 'Project created', time: '2 hours ago' },
-    { action: 'Task completed', time: '4 hours ago' },
-    { action: 'Team member joined', time: '1 day ago' },
-  ]
-
   return (
-    <div className="space-y-8">
+    <main className="min-h-screen bg-linear-to-br from-cyan-50 to-slate-100 flex flex-col items-center px-4">
       {/* Hero Section */}
-      <div className="rounded-2xl bg-linear-to-r from-[#BB243E] to-[#8B1A2E] p-8 text-white">
-        <h1 className="text-4xl font-bold mb-2">Welcome back! 👋</h1>
-        <p className="text-white/90">Here's what's happening with your projects today.</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-xl border border-[rgba(17,24,39,0.12)] bg-white p-6 hover:shadow-soft transition"
-          >
-            <p className="text-sm text-[#6B7280] mb-2">{stat.label}</p>
-            <p className="text-3xl font-bold text-[#111827]">{stat.value}</p>
+      <section className="w-full max-w-4xl mx-auto mt-16 mb-12">
+        <div className="bg-white rounded-3xl shadow-xl p-10 md:p-16 flex flex-col items-center">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-cyan-700 mb-4 text-center">
+            Unified AI Healthcare Platform
+          </h1>
+          <p className="text-lg md:text-xl text-slate-700 mb-6 text-center">
+            Proactive health management powered by AI, wearables, and virtual assistance.
+          </p>
+          <div className="flex flex-wrap justify-center gap-6 mb-8">
+            <div className="flex flex-col items-center">
+              <span className="text-slate-800 font-medium mt-2">Vitals Monitoring</span>
+              <span className="text-xs text-slate-500">Heart Rate, BP, Glucose, Sleep</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-slate-800 font-medium mt-2">Predictive Analytics</span>
+              <span className="text-xs text-slate-500">Smart Alerts & Risk Detection</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-slate-800 font-medium mt-2">Virtual Assistant</span>
+              <span className="text-xs text-slate-500">Diet, Coaching, Reminders</span>
+            </div>
           </div>
-        ))}
-      </div>
-
-      {/* Features Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-[#111827] mb-4">Key Features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="rounded-xl border border-[rgba(17,24,39,0.12)] bg-white p-6 hover:shadow-soft transition"
-            >
-              <div className="text-3xl mb-3">{feature.icon}</div>
-              <h3 className="text-lg font-semibold text-[#111827] mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-[#6B7280]">{feature.description}</p>
-            </div>
-          ))}
+          <div className="bg-cyan-50 rounded-xl p-4 text-center text-cyan-700 font-semibold text-lg">
+            Shifting healthcare from <b>reactive treatment</b> to <b>proactive prevention</b> using AI.
+          </div>
         </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div>
-        <h2 className="text-2xl font-bold text-[#111827] mb-4">Recent Activity</h2>
-        <div className="rounded-xl border border-[rgba(17,24,39,0.12)] bg-white divide-y divide-[rgba(17,24,39,0.12)]">
-          {recentActivity.map((activity, index) => (
-            <div key={index} className="p-4 flex justify-between items-center hover:bg-[#FEFEFE] transition">
-              <p className="text-[#111827]">{activity.action}</p>
-              <p className="text-sm text-[#6B7280]">{activity.time}</p>
-            </div>
-          ))}
+      </section>
+      <section className="w-full max-w-4xl mx-auto mb-12">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-cyan-700 mb-4">Platform Features</h2>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <li className="flex items-start gap-4">
+              <div>
+                <span className="font-semibold text-slate-800">Smart Alerts</span>
+                <p className="text-sm text-slate-600">Instant notifications for health risks, medication, and lifestyle reminders.</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <div>
+                <span className="font-semibold text-slate-800">Personalized Diet & Coaching</span>
+                <p className="text-sm text-slate-600">AI-driven recommendations for nutrition, exercise, and daily habits.</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <div>
+                <span className="font-semibold text-slate-800">Medication Reminders</span>
+                <p className="text-sm text-slate-600">Timely alerts for prescriptions and adherence tracking.</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <span className="text-2xl">🩺</span>
+              <div>
+                <span className="font-semibold text-slate-800">Symptom Guidance</span>
+                <p className="text-sm text-slate-600">Virtual assistant helps with symptom-based advice and triage.</p>
+              </div>
+            </li>
+          </ul>
         </div>
-      </div>
+      </section>
 
-      {/* CTA Section */}
-      <div className="rounded-xl border border-[#BB243E]/20 bg-[#BB243E]/5 p-8 text-center">
-        <h3 className="text-xl font-bold text-[#111827] mb-2">Ready to get started?</h3>
-        <p className="text-[#6B7280] mb-4">Create your first project and start tracking today.</p>
-        <button className="inline-flex items-center justify-center rounded-xl font-medium transition focus:outline-none focus:ring-2 focus:ring-[#BB243E]/30 disabled:opacity-50 disabled:pointer-events-none h-10 px-6 text-sm bg-[#BB243E] text-white hover:brightness-95">
-          Create Project
-        </button>
-      </div>
-    </div>
-  )
+      <section className="w-full max-w-4xl mx-auto mb-12">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-cyan-700 mb-4">Supported Use Cases</h2>
+          <ul className="list-disc pl-6 text-slate-700 space-y-2">
+            <li>Chronic disease management (diabetes, hypertension)</li>
+            <li>Elderly care with fall detection</li>
+            <li>Post-operative recovery monitoring</li>
+            <li>Mental health tracking</li>
+            <li>Pediatric health support</li>
+          </ul>
+        </div>
+      </section>
+
+
+      <section className="w-full max-w-4xl mx-auto mb-16">
+        <div className="bg-cyan-700 rounded-2xl shadow-lg p-8 flex flex-col items-center">
+          <h3 className="text-2xl font-bold text-white mb-2">Ready to shift to proactive healthcare?</h3>
+          <p className="text-white text-lg mb-4">Sign up or explore the dashboard to see your health insights.</p>
+          <div className="flex gap-4">
+            <a href="/signup" className="bg-white text-cyan-700 font-semibold px-6 py-2 rounded-xl shadow hover:bg-cyan-50 transition">Get Started</a>
+            <a href="/dashboard" className="bg-cyan-50 text-cyan-700 font-semibold px-6 py-2 rounded-xl shadow hover:bg-white transition">View Dashboard</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
