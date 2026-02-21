@@ -13,7 +13,7 @@ dotenv.config();
 // 2. Debug Check (Remove this after it works)
 console.log("Checking MONGO_URI:", process.env.MONGO_URI ? "LOADED" : "NOT FOUND");
 
-const PORT = process.env.PORT || 5000;
+const PORT = 3001;
 const app = express();
 
 // Middleware
