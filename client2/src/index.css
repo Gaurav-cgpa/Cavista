@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 25% 97%;
+    --foreground: 210 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 30% 12%;
+
+    --primary: 205 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 25% 93%;
+    --secondary-foreground: 210 30% 20%;
+
+    --muted: 210 20% 95%;
+    --muted-foreground: 210 15% 50%;
+
+    --accent: 158 55% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 205 80% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 210 20% 30%;
+    --sidebar-primary: 205 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 25% 95%;
+    --sidebar-accent-foreground: 210 30% 20%;
+    --sidebar-border: 210 20% 92%;
+    --sidebar-ring: 205 80% 50%;
+
+    /* Custom tokens */
+    --health-green: 158 55% 42%;
+    --health-green-light: 158 55% 95%;
+    --health-red: 0 72% 55%;
+    --health-red-light: 0 72% 95%;
+    --health-yellow: 38 92% 55%;
+    --health-yellow-light: 38 92% 95%;
+    --health-blue: 205 80% 50%;
+    --health-blue-light: 205 80% 95%;
+    --gradient-primary: 205 80% 50%;
+    --gradient-primary-end: 195 85% 45%;
+    --hero-gradient-start: 205 85% 52%;
+    --hero-gradient-end: 158 55% 42%;
+  }
+
+  .dark {
+    --background: 210 30% 8%;
+    --foreground: 210 15% 92%;
+
+    --card: 210 25% 12%;
+    --card-foreground: 210 15% 92%;
+
+    --popover: 210 25% 12%;
+    --popover-foreground: 210 15% 92%;
+
+    --primary: 205 80% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 18%;
+    --secondary-foreground: 210 15% 85%;
+
+    --muted: 210 20% 16%;
+    --muted-foreground: 210 15% 60%;
+
+    --accent: 158 55% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 20%;
+    --input: 210 20% 20%;
+    --ring: 205 80% 55%;
+
+    --sidebar-background: 210 30% 10%;
+    --sidebar-foreground: 210 15% 85%;
+    --sidebar-primary: 205 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 16%;
+    --sidebar-accent-foreground: 210 15% 85%;
+    --sidebar-border: 210 20% 18%;
+    --sidebar-ring: 205 80% 55%;
+
+    --health-green: 158 55% 45%;
+    --health-green-light: 158 40% 15%;
+    --health-red: 0 72% 50%;
+    --health-red-light: 0 50% 15%;
+    --health-yellow: 38 92% 50%;
+    --health-yellow-light: 38 60% 15%;
+    --health-blue: 205 80% 55%;
+    --health-blue-light: 205 50% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-md border border-border/50 shadow-sm;
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--hero-gradient-start)), hsl(var(--hero-gradient-end)));
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--hero-gradient-start)), hsl(var(--hero-gradient-end)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
