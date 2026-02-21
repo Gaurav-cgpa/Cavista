@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import VirtualAssistant from "./pages/VirtualAssistant";
 import DietLifestyle from "./pages/DietLifestyle";
 import AdminView from "./pages/AdminView";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/assistant" element={<VirtualAssistant />} />
           <Route path="/lifestyle" element={<DietLifestyle />} />
           <Route path="/admin" element={<AdminView />} />
