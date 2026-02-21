@@ -50,6 +50,7 @@ export const signup=async(req,res)=>{
 
         res.status(201).json({
             success: true,
+            token,
             message: "User created successfully",
             user: {
                 ...newUser._doc,
@@ -99,6 +100,7 @@ export const login=async(req,res)=>{
         res.status(201).json(
             {
                 success:true,
+                token,
                 message:"Logged in successfully",
                 user:{
                     ...userExist._doc,

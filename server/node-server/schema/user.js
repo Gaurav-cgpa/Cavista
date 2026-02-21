@@ -36,6 +36,9 @@ const userSchema=mongoose.Schema({
     bloodGroup:{
         type:String,
     },
+    phoneNumber:{
+        type:String,
+    }
 },{timestamps:true});
 
 const User=mongoose.model("User",userSchema);
