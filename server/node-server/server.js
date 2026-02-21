@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { connectDB } from './db/db.js';
 import authRoute from './route/authRoute.js';
 import userRoute from './route/userRoute.js';
+import elevenlabsRoute from './route/elevenlabsRoute.js';
 
 // 1. Load environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.use(cors({
 // Routes
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
+app.use("/api/elevenlabs", elevenlabsRoute);
 
 const startServer = async () => {
     try {
