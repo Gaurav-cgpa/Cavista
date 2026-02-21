@@ -1,4 +1,3 @@
-
 export const generateVitals = (patientId) => {
   const heartRate = Math.floor(Math.random() * (110 - 60) + 60);
   const systolicBP = Math.floor(Math.random() * (130 - 110) + 110);
@@ -19,13 +18,4 @@ export const generateVitals = (patientId) => {
     createdAt: now,
     updatedAt: now
   };
-};
-
-
-export const generateVitalsForPatient = async (patientId = "P001") => {
-  const vitals = generateVitals(patientId);
-
-  console.log("🩺 Generated Vitals:", vitals);
-
-  return vitals;
 };

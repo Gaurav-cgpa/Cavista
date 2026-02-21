@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const vitalsSchema = new mongoose.Schema({
     patientId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
         required: true,
         index: true
     },
