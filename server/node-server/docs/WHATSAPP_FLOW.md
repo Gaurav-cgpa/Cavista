@@ -58,7 +58,7 @@ The first non-empty string found is sent back to the user on WhatsApp.
 Without using the phone, you can simulate Twilio calling your webhook:
 
 ```bash
-curl -X POST "http://localhost:5000/api/whatsapp/incoming" \
+curl -X POST "http://localhost:3001/api/whatsapp/incoming" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "From=whatsapp:+919322818122" \
   -d "To=whatsapp:+14155238886" \

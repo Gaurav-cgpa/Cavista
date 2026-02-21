@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import {
   textToSpeech,
   speechToText,
+  translate,
   LANGUAGES,
   type LanguageCode,
 } from "@/lib/elevenlabsApi";
@@ -26,25 +27,40 @@ const quickPrompts = [
   "Am I at risk for diabetes?",
 ];
 
-/** Generate a contextual bot reply based on user message (no LLM; responds accordingly) */
-function getBotReply(userMessage: string): string {
-  const lower = userMessage.toLowerCase();
-  if (lower.includes("headache") || lower.includes("dizzy")) {
-    return "I'm sorry to hear that. For headaches and dizziness, try resting in a quiet room and staying hydrated. If it's severe or persists, please see a doctor. I can also help you log symptoms if needed.";
+/** Call backend API to get chatbot reply - NO HARDCODED FALLBACK */
+async function getChatbotReply(userMessage: string, userId?: string): Promise<string> {
+  const baseUrl = "http://localhost:3001";
+  
+  // Get bearer token from local storage
+  const bearerToken = localStorage.getItem("healthai_token");
+  if (!bearerToken) {
+    throw new Error("Not authenticated. Please login first.");
   }
-  if (lower.includes("vital") || lower.includes("vitals")) {
-    return "Based on your dashboard, your recent vitals are within normal ranges. Keep monitoring them and share any concerns. Would you like me to explain any specific metric?";
+  
+  console.log("🤖 Calling backend chat API...");
+  
+  const res = await fetch(`${baseUrl}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      message: userMessage, 
+      userId: userId || undefined,
+      bearerToken,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `Chat failed: ${res.status}`);
   }
-  if (lower.includes("exercise") || lower.includes("back pain")) {
-    return "For lower back pain, gentle stretches and walking often help. Avoid heavy lifting. I recommend consulting a physiotherapist for a personalized plan. Would you like general stretching tips?";
+
+  const data = await res.json();
+  if (!data.reply) {
+    throw new Error("No reply in API response");
   }
-  if (lower.includes("diabetes") || lower.includes("risk")) {
-    return "Risk depends on family history, lifestyle, and vitals. Your glucose trends on the dashboard are a good starting point. I recommend discussing a full risk assessment with your doctor.";
-  }
-  if (lower.includes("thank") || lower.includes("thanks")) {
-    return "You're welcome! Feel free to ask anything else about your health or vitals.";
-  }
-  return "Thank you for sharing that. I've noted your message. For personalized medical advice, please consult your physician. Is there anything specific about your vitals or symptoms you'd like to explore?";
+
+  console.log("✅ Got API reply:", data.reply);
+  return String(data.reply).trim();
 }
 
 const VirtualAssistant = () => {
@@ -111,18 +127,69 @@ const VirtualAssistant = () => {
         sender: "user" as const,
         message: content,
       };
-      const botMessage = getBotReply(content);
+
+      // Only translate if Hindi is selected
+      let contentForApi = content;
+      if (language === "hi") {
+        try {
+          console.log("🌐 Hindi selected - translating user input to English");
+          contentForApi = await translate(content, "en", "hi");
+          console.log("📝 Translated Hindi→English:", contentForApi);
+        } catch (e) {
+          console.error("Translation error:", e);
+          contentForApi = content;
+        }
+      } else {
+        console.log("🌐 English selected - no translation needed");
+      }
+
+      let displayBotMessage = "";
+      try {
+        // Call backend API - NO FALLBACK
+        console.log("🤖 Calling backend chat API...");
+        const botMessage = await getChatbotReply(contentForApi);
+        console.log("✅ Got API reply:", botMessage);
+
+        // Only translate response back to Hindi if Hindi is selected
+        displayBotMessage = botMessage;
+        if (language === "hi") {
+          try {
+            console.log("🌐 Hindi selected - translating response to Hindi");
+            displayBotMessage = await translate(botMessage, "hi", "en");
+            console.log("📝 Translated English→Hindi:", displayBotMessage);
+          } catch (e) {
+            console.error("Translation error:", e);
+            displayBotMessage = botMessage;
+          }
+        } else {
+          console.log("🌐 English selected - keeping response in English");
+        }
+      } catch (err) {
+        // Show error message from API
+        displayBotMessage = `Error: ${err instanceof Error ? err.message : "Chat API failed. Please try again."}`;
+        console.error("❌ Chat failed:", displayBotMessage);
+        toast({
+          title: "Chat Error",
+          description: displayBotMessage,
+          variant: "destructive",
+        });
+      }
+
       const botMsg = {
         id: messages.length + 2,
         sender: "bot" as const,
-        message: botMessage,
+        message: displayBotMessage,
       };
 
       setMessages((prev) => [...prev, userMsg, botMsg]);
       setInput("");
-      await playTts(botMessage);
+
+      // Play response in selected language (if available)
+      if (displayBotMessage && !displayBotMessage.startsWith("Error:")) {
+        await playTts(displayBotMessage);
+      }
     },
-    [input, messages.length, playTts]
+    [input, language, messages.length, playTts, toast]
   );
 
   const startRecording = useCallback(async () => {
@@ -143,10 +210,14 @@ const VirtualAssistant = () => {
         }
         try {
           const result = await speechToText(blob, language);
-          const text = (result?.text ?? "").trim();
+          let text = (result?.text ?? "").trim();
+          
           if (text) {
             setInput((prev) => (prev ? `${prev} ${text}` : text));
-            toast({ title: "Voice transcribed", description: text.length > 60 ? `${text.slice(0, 60)}…` : text });
+            toast({ 
+              title: "Voice transcribed", 
+              description: text.length > 60 ? `${text.slice(0, 60)}…` : text 
+            });
             setTimeout(() => inputRef.current?.focus(), 0);
           } else {
             toast({ title: "No text recognized", description: "Try speaking clearly.", variant: "destructive" });

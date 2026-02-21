@@ -1,4 +1,4 @@
-export const API_BASE = "http://localhost:5000";
+export const API_BASE = "http://localhost:3001";
 const AUTH_TOKEN_KEY = "healthai_token";
 const AUTH_USER_KEY = "healthai_user";
 

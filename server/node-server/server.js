@@ -8,6 +8,8 @@ import userRoute from './route/userRoute.js';
 import elevenlabsRoute from './route/elevenlabsRoute.js';
 import whatsappRoute from './route/whatsappRoute.js';
 import telegramRoute from './route/telegramRoute.js';
+import translateRoute from './route/translateRoute.js';
+import chatRoute from './route/chatRoute.js';
 import realTimeRoute from './route/realTimeRoute.js';
 import { generateAndStoreVitals } from './controller/dynamicInfoController.js';
 import cron from "node-cron";
@@ -38,9 +40,11 @@ cron.schedule("*/10 * * * *", async () => {
 
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
+app.use("/api/chat", chatRoute);
 app.use("/api/elevenlabs", elevenlabsRoute);
 app.use("/api/whatsapp", whatsappRoute);
 app.use("/api/telegram", telegramRoute);
+app.use("/api/translate", translateRoute);
 app.use("/api/realtime", realTimeRoute);
 
 const startServer = async () => {

@@ -30,7 +30,7 @@ export function Signup() {
     
     // Handle signup logic here
     setError('')
-    fetch('http://localhost:5000/api/auth/signup', {
+    fetch('http://localhost:3001/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password }),

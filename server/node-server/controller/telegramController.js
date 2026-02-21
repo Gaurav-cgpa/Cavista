@@ -1,5 +1,6 @@
 import { getChatbotReply } from "../services/chatbotService.js";
 import { sendTelegramMessage } from "../services/telegramService.js";
+import { getOrCreateTelegramSession } from "../services/telegramSessionService.js";
 
 /**
  * Telegram webhook: receives updates from Telegram, calls chatbot, sends reply.
@@ -27,17 +28,26 @@ export async function handleWebhook(req, res) {
     // Reply quickly so Telegram doesn't retry
     res.status(200).send("OK");
 
+    // Get or create persistent session for this chatId
+    const userInfo = {
+      username: message.from?.username,
+      firstName: message.from?.first_name,
+      lastName: message.from?.last_name,
+    };
+    const { sessionId, isNew } = await getOrCreateTelegramSession(chatId, userInfo);
+    console.log(`${isNew ? "🆕 New" : "✅ Existing"} session: ${sessionId}`);
+
     if (!userMessage) {
       console.log("Empty message text, sending prompt");
       await sendTelegramMessage(chatId, "Please send a text message and I'll reply.");
       return;
     }
 
-    console.log(`Processing message from chat ${chatId}: "${userMessage}"`);
+    console.log(`Processing message from session ${sessionId} (chat ${chatId}): "${userMessage}"`);
 
-    // Forward message to chatbot API and send response back to Telegram
+    // Forward message to chatbot API with persistent sessionId (not chatId)
     try {
-      const reply = await getChatbotReply(userMessage, chatId);
+      const reply = await getChatbotReply(userMessage, sessionId);
       console.log(`Got reply: "${reply}"`);
       await sendTelegramMessage(chatId, reply);
       console.log(`Sent reply to chat ${chatId}`);

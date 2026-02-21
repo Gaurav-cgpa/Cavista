@@ -54,3 +54,23 @@ export async function speechToText(
   }
   return res.json();
 }
+
+/** Translate text between languages */
+export async function translate(
+  text: string,
+  targetLang: string,
+  sourceLang: string = "en"
+): Promise<string> {
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/translate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, targetLang, sourceLang }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `Translation failed: ${res.status}`);
+  }
+  const data = await res.json();
+  return data.translated || text;
+}
