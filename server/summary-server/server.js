@@ -7,10 +7,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 if (!GROQ_API_KEY) {
-  console.warn("GROQ_API_KEY not set.");
+  console.warn("⚠️ GROQ_API_KEY not set");
 }
 
 const groq = new Groq({
@@ -18,21 +18,24 @@ const groq = new Groq({
 });
 
 //
-// 🔥 GROQ SUMMARY FUNCTION
-//
-async function getPatientSummaryFromGroq(patientData) {
+// =====================================
+// 🔥 GROQ SUMMARY GENERATOR
+// =====================================
+async function generateSummary(patientData) {
   try {
     const prompt = `
-You are a professional medical assistant.
+You are a professional clinical medical assistant.
 
-Analyse the patient profile and last-day vitals data.
+Analyze the patient profile and 24-hour vitals history.
+
 Provide:
 - Overall health summary
 - Risk indicators
-- Observed trends
-- Important concerns
+- Observed trends in heart rate, blood pressure, glucose and sleep
+- Any abnormal fluctuations
+- Important medical concerns
 
-Use only the provided data.
+Use ONLY the provided data.
 
 Patient Data:
 ${JSON.stringify(patientData, null, 2)}
@@ -41,43 +44,41 @@ ${JSON.stringify(patientData, null, 2)}
     const response = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [
-        {
-          role: "system",
-          content: "You are a clinical medical assistant.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
+        { role: "system", content: "You are a clinical medical assistant." },
+        { role: "user", content: prompt }
       ],
       temperature: 0.3,
     });
 
-    return (
-      response.choices[0]?.message?.content ||
-      "No summary generated."
-    );
+    return response.choices[0]?.message?.content || "No summary generated.";
   } catch (error) {
-    console.error("Groq Error:", error);
+    console.error("❌ Groq Error:", error.message);
     return "AI generation failed.";
   }
 }
 
 //
+// =====================================
 // 🔥 SUMMARY ROUTE
-//
+// =====================================
 app.post("/api/patient-summary", async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader) {
       return res.status(401).json({
         success: false,
-        message: "Authorization token required",
+        message: "Authorization header required",
       });
     }
 
-    // 1️⃣ Fetch user profile
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader
+      : `Bearer ${authHeader}`;
+
+    //
+    // 1️⃣ Fetch Profile
+    //
     const profileResponse = await fetch(
       "http://localhost:5000/api/user/profile",
       {
@@ -96,21 +97,23 @@ app.post("/api/patient-summary", async (req, res) => {
       });
     }
 
-    const profileData = await profileResponse.json();
+    const profileJson = await profileResponse.json();
 
-    if (!profileData.success) {
+    if (!profileJson.success || !profileJson.data) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
-    const user = profileData.data;
+    const user = profileJson.data;
     const patientId = user._id;
 
-    console.log("Fetched profile:", user);
+    console.log("✅ Profile fetched for:", patientId);
 
-    // 2️⃣ Fetch last-day realtime vitals
+    //
+    // 2️⃣ Fetch Realtime Vitals
+    //
     const realtimeResponse = await fetch(
       `http://localhost:5000/api/realtime/last-day/${patientId}`,
       {
@@ -121,23 +124,58 @@ app.post("/api/patient-summary", async (req, res) => {
       }
     );
 
-    let realtimeData = null;
+    let vitalsList = [];
+    let alerts = [];
+    let hasEmergency = false;
 
     if (realtimeResponse.ok) {
       const realtimeJson = await realtimeResponse.json();
-      realtimeData = realtimeJson.data || realtimeJson;
+
+      console.log("✅ Realtime response:", realtimeJson);
+
+      if (realtimeJson.success && realtimeJson.record?.history?.length) {
+
+        // 🔥 Extract from record.history
+        vitalsList = realtimeJson.record.history.map(entry => ({
+          timestamp: entry.timestamp,
+          heartRate: entry.data?.heartRate ?? null,
+          systolicBP: entry.data?.systolicBP ?? null,
+          diastolicBP: entry.data?.diastolicBP ?? null,
+          glucose: entry.data?.glucose ?? null,
+          sleepHours: entry.data?.sleepHours ?? null,
+        }));
+
+        alerts = realtimeJson.alerts || [];
+        hasEmergency = realtimeJson.hasEmergency || false;
+      }
     }
 
-    console.log("Fetched realtime data:", realtimeData);
-
-    // 3️⃣ Merge data
+    //
+    // 3️⃣ Prepare Final AI Payload
+    //
     const patientData = {
-      profile: user,
-      lastDayVitals: realtimeData,
+      profile: {
+        fullName: user.fullName,
+        age: user.age,
+        gender: user.gender,
+        height: user.height,
+        weight: user.weight,
+        bloodGroup: user.bloodGroup,
+        healthHistory: user.healthHistory || null,
+      },
+      vitalsLast24Hours: vitalsList,
+      totalRecords: vitalsList.length,
+      latestReading: vitalsList[vitalsList.length - 1] || null,
+      alerts,
+      hasEmergency
     };
 
-    // 4️⃣ Send to Groq
-    const summary = await getPatientSummaryFromGroq(patientData);
+    console.log("📊 Final AI Payload:", JSON.stringify(patientData, null, 2));
+
+    //
+    // 4️⃣ Generate AI Summary
+    //
+    const summary = await generateSummary(patientData);
 
     return res.json({
       success: true,
@@ -145,16 +183,20 @@ app.post("/api/patient-summary", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Summary error:", error);
+    console.error("❌ Summary route error:", error);
     return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Internal server error",
     });
   }
 });
 
+//
+// =====================================
+// 🚀 START SERVER
+// =====================================
 const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {
-  console.log(`Summary server running on port ${PORT}`);
+  console.log(`🚀 Summary server running on port ${PORT}`);
 });
