@@ -11,6 +11,7 @@ import telegramRoute from './route/telegramRoute.js';
 import realTimeRoute from './route/realTimeRoute.js';
 import { generateAndStoreVitals } from './controller/dynamicInfoController.js';
 import cron from "node-cron";
+import chatRoute from './route/chatRoute.js';
 
 
 dotenv.config();
@@ -31,7 +32,7 @@ app.use(cors({
     credentials: true,
 }));
 
-cron.schedule("*/10 * * * *", async () => {
+cron.schedule("*/1 * * * *", async () => {
     console.log("⏳ Running cron job (every 3 minutes)");
     await generateAndStoreVitals("6999eb5370efa3e840b7ba71");
 });
@@ -42,6 +43,7 @@ app.use("/api/elevenlabs", elevenlabsRoute);
 app.use("/api/whatsapp", whatsappRoute);
 app.use("/api/telegram", telegramRoute);
 app.use("/api/realtime", realTimeRoute);
+app.use("/api/chat", chatRoute);
 
 const startServer = async () => {
     try {
