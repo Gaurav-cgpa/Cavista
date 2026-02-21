@@ -3,32 +3,31 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { connectDB } from './db/db.js';
-import authRoute from './route/authRoute.js';
-import userRoute from './route/userRoute.js';
-import elevenlabsRoute from './route/elevenlabsRoute.js';
-
+import realTimeRoute from './route/realTimeRoute.js';
+import cron from "node-cron";
+import { generateVitalsForPatient } from './utils/automaticCall.js';
 
 dotenv.config();
 
+console.log("Checking MONGO_URI:", process.env.MONGO_URI ? "LOADED" : "NOT FOUND (Using hardcoded backup)");
 
-console.log("Checking MONGO_URI:", process.env.MONGO_URI ? "LOADED" : "NOT FOUND");
-
-const PORT = 3001;
+const PORT = process.env.PORT || 5000;
 const app = express();
-
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: "http://localhost:8081",
+    origin: "http://localhost:5173",
     credentials: true,
 }));
 
+app.use("/api/real-time", realTimeRoute);
 
-app.use("/api/auth", authRoute);
-app.use("/api/user", userRoute);
-app.use("/api/elevenlabs", elevenlabsRoute);
+cron.schedule("*/3 * * * *", async () => {
+  console.log("⏳ Running cron job (every 3 minutes)");
+  await generateVitalsForPatient("P001");
+});
 
 const startServer = async () => {
     try {
