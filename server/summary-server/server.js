@@ -1,152 +1,160 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import mongoose from "mongoose";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const MONGO_URI = process.env.MONGO_URI || "";
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
 
-if (!MONGO_URI) {
-  console.warn("MONGO_URI not set. Set it in .env to connect to MongoDB.");
-}
-if (!GEMINI_API_KEY) {
-  console.warn("GEMINI_API_KEY not set. Set it in .env to use Gemini.");
+if (!GROQ_API_KEY) {
+  console.warn("GROQ_API_KEY not set.");
 }
 
-// User schema (matches existing User collection - patient profile)
-const userSchema = new mongoose.Schema(
-  {
-    fullName: String,
-    username: String,
-    email: String,
-    age: Number,
-    gender: String,
-    height: Number,
-    weight: Number,
-    dob: Date,
-    bloodGroup: String,
-    phoneNumber: String
-  },
-  { timestamps: true, strict: false }
-);
-const User = mongoose.models.User || mongoose.model("User", userSchema);
-
-// Vitals schema (matches existing health_data collection)
-const vitalsSchema = new mongoose.Schema(
-  {
-    patientId: { type: mongoose.Schema.Types.Mixed, required: true },
-    heartRate: Number,
-    systolicBP: Number,
-    diastolicBP: Number,
-    glucose: Number,
-    sleepHours: Number,
-    timestamp: Date
-  },
-  { timestamps: true, strict: false }
-);
-const Vitals = mongoose.models.Vitals || mongoose.model("Vitals", vitalsSchema);
-
-// Chat schema (matches existing Chat collection)
-const messageSchema = new mongoose.Schema(
-  { role: String, content: String },
-  { _id: false }
-);
-const chatSchema = new mongoose.Schema(
-  { patientId: String, conversation: [messageSchema] },
-  { timestamps: true, strict: false }
-);
-const Chat = mongoose.models.Chat || mongoose.model("Chat", chatSchema);
-
-async function connectDB() {
-  if (!MONGO_URI) return;
-  try {
-    await mongoose.connect(MONGO_URI);
-    console.log("MongoDB connected");
-  } catch (err) {
-    console.error("MongoDB connection error:", err.message);
-  }
-}
-
-function toObjectId(id) {
-  if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)) {
-    return new mongoose.Types.ObjectId(id);
-  }
-  return id;
-}
-
-async function getPatientSummaryFromGemini(patientData) {
-  if (!GEMINI_API_KEY) {
-    return "Summary unavailable: GEMINI_API_KEY not set.";
-  }
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  const prompt = `You are a medical assistant. The following is real patient data fetched from the database (profile, vitals, chat). Analyse it and produce a short, clear health summary. Focus on vitals trends, any concerns, and a brief overall assessment. Use only the data provided; do not invent anything.
-
-Patient data from database:
-${JSON.stringify(patientData, null, 2)}
-
-Respond with only the summary text, no extra headings or labels.`;
-  const result = await model.generateContent(prompt);
-  const response = result.response;
-  return response.text() || "No summary generated.";
-}
-
-app.get("/register", (req, res) => {
-  res.json({ message: "Register endpoint", ok: true });
+const groq = new Groq({
+  apiKey: GROQ_API_KEY,
 });
 
-// Flow: 1) Get patientId from request body → 2) Fetch that patient's data from MongoDB → 3) Send data to Gemini → 4) Return summary to caller
+//
+// 🔥 GROQ SUMMARY FUNCTION
+//
+async function getPatientSummaryFromGroq(patientData) {
+  try {
+    const prompt = `
+You are a professional medical assistant.
+
+Analyse the patient profile and last-day vitals data.
+Provide:
+- Overall health summary
+- Risk indicators
+- Observed trends
+- Important concerns
+
+Use only the provided data.
+
+Patient Data:
+${JSON.stringify(patientData, null, 2)}
+`;
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content: "You are a clinical medical assistant.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.3,
+    });
+
+    return (
+      response.choices[0]?.message?.content ||
+      "No summary generated."
+    );
+  } catch (error) {
+    console.error("Groq Error:", error);
+    return "AI generation failed.";
+  }
+}
+
+//
+// 🔥 SUMMARY ROUTE
+//
 app.post("/api/patient-summary", async (req, res) => {
   try {
-    const { patientId } = req.body;
-    if (!patientId) {
-      return res.status(400).json({ error: "patientId is required in request body" });
+    const token = req.headers.authorization;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization token required",
+      });
     }
 
-    if (!MONGO_URI || !mongoose.connection.readyState) {
-      await connectDB();
+    // 1️⃣ Fetch user profile
+    const profileResponse = await fetch(
+      "http://localhost:5000/api/user/profile",
+      {
+        method: "GET",
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!profileResponse.ok) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to fetch profile",
+      });
     }
-    
-    const oid = toObjectId(patientId);
-    const patientIdStr = String(patientId);
 
-    // 1. Fetch all data for this patient from MongoDB
-    const userPromise = oid instanceof mongoose.Types.ObjectId
-      ? User.findById(oid).select("-password").lean()
-      : Promise.resolve(null);
-    const [user, vitals, chat] = await Promise.all([
-      userPromise,
-      Vitals.find({ patientId: { $in: [oid, patientIdStr] } }).sort({ timestamp: -1 }).lean(),
-      Chat.findOne({ patientId: patientIdStr }).lean()
-    ]);
+    const profileData = await profileResponse.json();
 
+    if (!profileData.success) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const user = profileData.data;
+    const patientId = user._id;
+
+    console.log("Fetched profile:", user);
+
+    // 2️⃣ Fetch last-day realtime vitals
+    const realtimeResponse = await fetch(
+      `http://localhost:5000/api/realtime/last-day/${patientId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: token,
+        },
+      }
+    );
+
+    let realtimeData = null;
+
+    if (realtimeResponse.ok) {
+      const realtimeJson = await realtimeResponse.json();
+      realtimeData = realtimeJson.data || realtimeJson;
+    }
+
+    console.log("Fetched realtime data:", realtimeData);
+
+    // 3️⃣ Merge data
     const patientData = {
-      patientId: patientIdStr,
-      profile: user || null,
-      vitals: vitals || [],
-      chat: chat || null
+      profile: user,
+      lastDayVitals: realtimeData,
     };
 
-    // 2. Send patient data to Gemini to generate summary
-    const summary = await getPatientSummaryFromGemini(patientData);
+    // 4️⃣ Send to Groq
+    const summary = await getPatientSummaryFromGroq(patientData);
 
-    // 3. Return summary back to the frontend/caller
-    return res.json({ summary });
-  } catch (err) {
-    console.error("POST /api/patient-summary error:", err);
-    return res.status(500).json({ error: err.message || "Internal server error" });
+    return res.json({
+      success: true,
+      summary,
+    });
+
+  } catch (error) {
+    console.error("Summary error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 });
 
 const PORT = process.env.PORT || 5002;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Summary server running on port ${PORT}`);
-  });
+app.listen(PORT, () => {
+  console.log(`Summary server running on port ${PORT}`);
 });

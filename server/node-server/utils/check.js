@@ -1,9 +1,9 @@
 const THRESHOLDS = {
   heartRate: {
-    min: 60,
-    max: 100,
+    min: 40,
+    max: 60,
     critical_min: 40,
-    critical_max: 120
+    critical_max: 100
   },
   systolicBP: {
     min: 90,
