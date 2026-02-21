@@ -1,88 +1,101 @@
 import Vitals from '../schema/vital.js';
-import { checkVitalsForAlerts } from '../utils/check.js'; // Ensure this is imported
+import { generateVitals } from '../utils/automaticCall.js';
+import { checkVitalsForAlerts } from '../utils/check.js';
 import { sendAlertEmail } from '../utils/email.js';
 
-export const updatePatientDynamicDetails = async (req, res) => {
+/*
+|--------------------------------------------------------------------------
+| CRON FUNCTION
+|--------------------------------------------------------------------------
+| Only generate + store
+| NO email
+| NO alert checking
+*/
+export const generateAndStoreVitals = async (patientId = "P001") => {
     try {
-        const { patientId, responseData } = req.body;
+        const vitals = generateVitals(patientId);
 
-        if (!patientId || !responseData) {
-            return res.status(400).json({ success: false, message: "Missing Patient ID or data payload." });
-        }
-
-        const updatedRecord = await Vitals.findOneAndUpdate(
-            { patientId: patientId },
-            { 
-                $push: { 
-                    history: { 
-                        data: responseData, 
-                        timestamp: new Date() 
-                    } 
+        await Vitals.findOneAndUpdate(
+            { patientId },
+            {
+                $push: {
+                    history: {
+                        data: vitals,
+                        timestamp: new Date()
+                    }
                 },
                 $set: { updatedAt: new Date() }
             },
-            { new: true, runValidators: true } 
-        ).lean();
+            { upsert: true }
+        );
 
-        if (!updatedRecord) {
-            return res.status(404).json({ success: false, message: "Patient record not found." });
-        }
-
-        const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
-        const recentHistory = updatedRecord.history
-            .filter(log => new Date(log.timestamp) >= threeHoursAgo)
-            .reverse(); 
-
-        const alertResults = checkVitalsForAlerts(recentHistory);
-
-        if (alertResults.hasEmergency) {
-            sendAlertEmail(req.user.email, req.user.fullName, alertResults.alerts)
-                .catch(err => console.error('Background Email Failed:', err));
-        }
-
-
-        return res.status(200).json({
-            success: true,
-            message: "Data synchronized and analyzed.",
-            isEmergency: alertResults.hasEmergency, 
-            alerts: alertResults.alerts,
-            latestData: responseData,
-            historyCount: updatedRecord.history.length
-        });
+        console.log("✅ Cron: Vitals stored for", patientId);
 
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+        console.error("❌ Cron Error:", error.message);
     }
 };
 
-export const getRecentVitals = async (req, res) => {
+
+/*
+|--------------------------------------------------------------------------
+| FRONTEND API
+|--------------------------------------------------------------------------
+| Returns last 1 day data
+| Runs check
+| Sends email if emergency
+*/
+export const getLastOneDayVitals = async (req, res) => {
     try {
-        const { patientId } = req.params; 
-        const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+        const { patientId } = req.params;
+
+        if (!patientId) {
+            return res.status(400).json({
+                success: false,
+                message: "Patient ID required"
+            });
+        }
 
         const record = await Vitals.findOne({ patientId }).lean();
 
-        if (!record || !record.history) {
-            return res.status(200).json({ success: true, data: [], alerts: [] });
+        if (!record || !record.history.length) {
+            return res.status(200).json({
+                success: true,
+                data: [],
+                alerts: [],
+                hasEmergency: false
+            });
         }
 
-        const recentVitals = record.history
-            .filter(v => new Date(v.timestamp) >= threeHoursAgo)
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        const lastDayData = record.history
+            .filter(log => new Date(log.timestamp) >= oneDayAgo)
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        const alertResults = checkVitalsForAlerts(recentVitals);
+        const alertResults = checkVitalsForAlerts(lastDayData);
 
-        res.status(200).json({
+        if (alertResults.hasEmergency) {
+            await sendAlertEmail(
+                req.user?.email || "doctor@email.com",
+                req.user?.fullName || "Doctor",
+                alertResults.alerts
+            );
+        }
+
+        return res.status(200).json({
             success: true,
-            data: recentVitals,
+            totalRecords: lastDayData.length,
+            data: lastDayData,
             alerts: alertResults.alerts,
             hasEmergency: alertResults.hasEmergency,
-            summary: {
-                totalRecords: recentVitals.length,
-                latestReading: recentVitals[0]
-            }
+            latestReading: lastDayData[0] || null
         });
+
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
