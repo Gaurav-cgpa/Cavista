@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import VitalCard from "@/components/dashboard/VitalCard";
 import RiskMeter from "@/components/dashboard/RiskMeter";
 import AlertsPanel from "@/components/dashboard/AlertsPanel";
 import MedicationReminder from "@/components/dashboard/MedicationReminder";
 import { API_BASE, getToken, getUser } from "@/lib/auth";
-import { Heart, Thermometer, Droplets, Moon, RefreshCw } from "lucide-react";
+import { Heart, Thermometer, Droplets, Moon, RefreshCw, FileDown } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import {
   LineChart,
@@ -58,14 +59,33 @@ const formatTrend = (current: number, previous: number | undefined): string => {
   return "—";
 };
 
+const SUMMARY_API = "http://localhost:5002/api/patient-summary";
+
+interface SummaryProfile {
+  fullName?: string;
+  username?: string;
+  email?: string;
+  age?: number;
+  gender?: string;
+  bloodGroup?: string;
+  height?: number;
+  weight?: number;
+  phoneNumber?: string;
+}
+
 const Dashboard = () => {
   const [vitalsData, setVitalsData] = useState<VitalsApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refetching, setRefetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [summary, setSummary] = useState("");
+  const [profile, setProfile] = useState<SummaryProfile | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
   const user = getUser();
-  const patientId = user?._id;
+  const patientId = user?._id ?? "P001";
 
   const fetchVitals = async (isRefetch = false) => {
     if (!patientId || !getToken()) return;
@@ -96,6 +116,85 @@ const Dashboard = () => {
     }
     fetchVitals();
   }, [patientId]);
+
+  const fetchSummary = useCallback(async () => {
+    setSummaryLoading(true);
+    setSummaryError(null);
+    try {
+      const res = await fetch(SUMMARY_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSummary("No patient data found. This is a short summary report — sign in or ensure the summary server has data for this patient.");
+        setProfile(null);
+        setSummaryError((data as { error?: string }).error || res.statusText);
+        return;
+      }
+      setSummary((data as { summary?: string }).summary || "No patient data found. This is a short summary report.");
+      setProfile((data as { profile?: SummaryProfile }).profile ?? null);
+    } catch (err) {
+      setSummary("No patient data found. This is a short summary report — the summary service may be unavailable.");
+      setProfile(null);
+      setSummaryError(err instanceof Error ? err.message : "Request failed");
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, [patientId]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
+  const downloadSummaryPDF = () => {
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let y = 20;
+
+    doc.setFontSize(18);
+    doc.text("Patient Summary Report", pageW / 2, y, { align: "center" });
+    y += 12;
+
+    doc.setFontSize(11);
+    doc.text(`Patient ID: ${patientId}`, margin, y);
+    y += 7;
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+    y += 10;
+
+    if (profile && typeof profile === "object") {
+      doc.setFontSize(13);
+      doc.text("Patient Details", margin, y);
+      y += 8;
+      doc.setFontSize(10);
+      const details = [
+        profile.fullName && `Name: ${profile.fullName}`,
+        profile.username && `Username: ${profile.username}`,
+        profile.email && `Email: ${profile.email}`,
+        profile.age != null && `Age: ${profile.age}`,
+        profile.gender && `Gender: ${profile.gender}`,
+        profile.bloodGroup && `Blood Group: ${profile.bloodGroup}`,
+        profile.height != null && `Height: ${profile.height} cm`,
+        profile.weight != null && `Weight: ${profile.weight} kg`,
+        profile.phoneNumber && `Phone: ${profile.phoneNumber}`,
+      ].filter(Boolean);
+      details.forEach((line) => {
+        doc.text(line, margin, y);
+        y += 6;
+      });
+      y += 4;
+    }
+
+    doc.setFontSize(13);
+    doc.text("Summary", margin, y);
+    y += 8;
+    doc.setFontSize(11);
+    const lines = doc.splitTextToSize(summary || "No summary available.", pageW - 2 * margin);
+    doc.text(lines, margin, y);
+    doc.save(`patient-summary-${patientId}-${Date.now()}.pdf`);
+  };
 
   const timeSeries = vitalsData?.timeSeries ?? [];
   const latest = vitalsData?.latestReading?.data;
@@ -266,6 +365,51 @@ const Dashboard = () => {
               <RiskMeter />
               <AlertsPanel />
               <MedicationReminder />
+            </div>
+
+            {/* Patient Summary – from API, downloadable as PDF */}
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <h3 className="font-display text-xl font-semibold">Patient Summary</h3>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchSummary()}
+                    disabled={summaryLoading}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${summaryLoading ? "animate-spin" : ""}`} />
+                    {summaryLoading ? "Loading…" : "Refresh"}
+                  </Button>
+                  <Button size="sm" onClick={downloadSummaryPDF}>
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">Patient ID: {String(patientId)}</p>
+              {profile && typeof profile === "object" && (
+                <div className="mb-4 p-4 rounded-lg border border-border bg-muted/30">
+                  <h4 className="text-sm font-semibold mb-2">Patient Details</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    {profile.fullName && <span>Name: {profile.fullName}</span>}
+                    {profile.username && <span>Username: {profile.username}</span>}
+                    {profile.email && <span>Email: {profile.email}</span>}
+                    {profile.age != null && <span>Age: {profile.age}</span>}
+                    {profile.gender && <span>Gender: {profile.gender}</span>}
+                    {profile.bloodGroup && <span>Blood Group: {profile.bloodGroup}</span>}
+                    {profile.height != null && <span>Height: {profile.height} cm</span>}
+                    {profile.weight != null && <span>Weight: {profile.weight} kg</span>}
+                    {profile.phoneNumber && <span>Phone: {profile.phoneNumber}</span>}
+                  </div>
+                </div>
+              )}
+              {summaryError && (
+                <p className="text-sm text-amber-600 dark:text-amber-400 mb-2">Note: {summaryError}</p>
+              )}
+              <div className="min-h-[120px] rounded-lg bg-muted/30 p-4 text-sm whitespace-pre-wrap">
+                {summaryLoading ? "Loading summary…" : summary}
+              </div>
             </div>
           </>
         )}
