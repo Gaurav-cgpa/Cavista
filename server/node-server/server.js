@@ -13,7 +13,6 @@ import chatRoute from './route/chatRoute.js';
 import realTimeRoute from './route/realTimeRoute.js';
 import { generateAndStoreVitals } from './controller/dynamicInfoController.js';
 import cron from "node-cron";
-import chatRoute from './route/chatRoute.js';
 
 
 dotenv.config();
@@ -34,10 +33,10 @@ app.use(cors({
     credentials: true,
 }));
 
-cron.schedule("*/1 * * * *", async () => {
-    console.log("⏳ Running cron job (every 3 minutes)");
-    await generateAndStoreVitals("6999eb5370efa3e840b7ba71");
-});
+// cron.schedule("*/1 * * * *", async () => {
+//     console.log("⏳ Running cron job (every 3 minutes)");
+//     await generateAndStoreVitals("6999eb5370efa3e840b7ba71");
+// });
 
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);

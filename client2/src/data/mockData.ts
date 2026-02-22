@@ -43,9 +43,7 @@ export const medications = [
 ];
 
 export const chatMessages = [
-  { id: 1, sender: "bot" as const, message: "Hello! I'm your AI Health Assistant. How can I help you today?" },
-  { id: 2, sender: "user" as const, message: "I've been having frequent headaches this week." },
-  { id: 3, sender: "bot" as const, message: "I'm sorry to hear that. Let me ask a few questions to better understand:\n\n1. Where is the pain located? (front, sides, back of head)\n2. How would you rate the intensity (1-10)?\n3. Any accompanying symptoms like nausea or light sensitivity?\n\nBased on your vitals, your blood pressure has been slightly elevated, which could be a contributing factor." },
+  { id: 1, sender: "bot" as const, message: "Hello! I'm your AI Health Assistant. How can I help you today?" }
 ];
 
 export const mealPlan = [

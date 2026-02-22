@@ -1,4 +1,4 @@
-import { getChatbotReply } from "../services/chatbotService.js";
+import { getChatbotReplyFromUrl } from "../services/chatbotService.js";
 import { sendTelegramMessage } from "../services/telegramService.js";
 import { getOrCreateTelegramSession } from "../services/telegramSessionService.js";
 
@@ -47,7 +47,7 @@ export async function handleWebhook(req, res) {
 
     // Forward message to chatbot API with persistent sessionId (not chatId)
     try {
-      const reply = await getChatbotReply(userMessage, sessionId);
+      const reply = await getChatbotReplyFromUrl(userMessage, sessionId);
       console.log(`Got reply: "${reply}"`);
       await sendTelegramMessage(chatId, reply);
       console.log(`Sent reply to chat ${chatId}`);

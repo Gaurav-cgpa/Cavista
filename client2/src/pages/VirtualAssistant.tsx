@@ -28,7 +28,7 @@ const quickPrompts = [
 ];
 
 /** Call backend API to get chatbot reply - NO HARDCODED FALLBACK */
-async function getChatbotReply(userMessage: string, userId?: string): Promise<string> {
+async function getChatbotReply(userMessage: string, userId?: string, language?: string): Promise<string> {
   const baseUrl = "http://localhost:3001";
   
   // Get bearer token from local storage
@@ -38,6 +38,9 @@ async function getChatbotReply(userMessage: string, userId?: string): Promise<st
   }
   
   console.log("🤖 Calling backend chat API...");
+  console.log("🔐 Token retrieved from localStorage (length):", bearerToken?.length || 0, "chars");
+  console.log("🔐 Token preview:", bearerToken?.substring(0, 20) + "...");
+  console.log("🌐 Language preference:", language || "en");
   
   const res = await fetch(`${baseUrl}/api/chat`, {
     method: "POST",
@@ -46,6 +49,7 @@ async function getChatbotReply(userMessage: string, userId?: string): Promise<st
       message: userMessage, 
       userId: userId || undefined,
       bearerToken,
+      language: language || "en",
     }),
   });
 
@@ -71,6 +75,7 @@ const VirtualAssistant = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [sttLoading, setSttLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -128,41 +133,69 @@ const VirtualAssistant = () => {
         message: content,
       };
 
-      // Only translate if Hindi is selected
-      let contentForApi = content;
-      if (language === "hi") {
-        try {
-          console.log("🌐 Hindi selected - translating user input to English");
-          contentForApi = await translate(content, "en", "hi");
-          console.log("📝 Translated Hindi→English:", contentForApi);
-        } catch (e) {
-          console.error("Translation error:", e);
-          contentForApi = content;
-        }
-      } else {
-        console.log("🌐 English selected - no translation needed");
-      }
+      // Add user message immediately
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+
+      // Show loading indicator
+      setIsLoading(true);
 
       let displayBotMessage = "";
       try {
-        // Call backend API - NO FALLBACK
-        console.log("🤖 Calling backend chat API...");
-        const botMessage = await getChatbotReply(contentForApi);
-        console.log("✅ Got API reply:", botMessage);
-
-        // Only translate response back to Hindi if Hindi is selected
-        displayBotMessage = botMessage;
+        // Always prepare content in English for API
+        let contentForApi = content;
         if (language === "hi") {
           try {
-            console.log("🌐 Hindi selected - translating response to Hindi");
+            console.log("🌐 Hindi selected - translating user input to English for API");
+            contentForApi = await translate(content, "en", "hi");
+            console.log("📝 Translated Hindi→English:", contentForApi);
+          } catch (e) {
+            console.error("Translation error:", e);
+            contentForApi = content;
+          }
+        } else {
+          console.log("🌐 English selected - sending English to API");
+        }
+
+        // Call backend API with language preference - expects English input, returns response
+        console.log("🤖 Calling backend chat API with language:", language);
+        const botMessage = await getChatbotReply(contentForApi, undefined, language);
+        console.log("✅ Got API reply (should be in selected language):", botMessage);
+
+        // Process response based on selected language
+        displayBotMessage = botMessage;
+        
+        // ALWAYS check if response is in the correct language and translate if needed
+        const hindiCharRegex = /[\u0900-\u097F]/; // Hindi Unicode range
+        const responseIsHindi = hindiCharRegex.test(botMessage);
+        const responseIsEnglish = !responseIsHindi; // If not Hindi, assume English
+        
+        console.log("🔍 Response language detection:", responseIsHindi ? "Hindi" : "English");
+        console.log("🎯 Selected language:", language === "hi" ? "Hindi" : "English");
+        
+        // Check if response matches selected language
+        if (language === "en" && responseIsHindi) {
+          // English selected but got Hindi - translate to English
+          try {
+            console.log("🌐 Got Hindi response but English selected - translating to English");
+            displayBotMessage = await translate(botMessage, "en", "hi");
+            console.log("📝 Translated Hindi→English:", displayBotMessage);
+          } catch (e) {
+            console.error("Translation error:", e);
+            displayBotMessage = botMessage; // Keep original if translation fails
+          }
+        } else if (language === "hi" && responseIsEnglish) {
+          // Hindi selected but got English - translate to Hindi
+          try {
+            console.log("🌐 Got English response but Hindi selected - translating to Hindi");
             displayBotMessage = await translate(botMessage, "hi", "en");
             console.log("📝 Translated English→Hindi:", displayBotMessage);
           } catch (e) {
             console.error("Translation error:", e);
-            displayBotMessage = botMessage;
+            displayBotMessage = botMessage; // Keep original if translation fails
           }
         } else {
-          console.log("🌐 English selected - keeping response in English");
+          console.log("✅ Response already in correct language");
         }
       } catch (err) {
         // Show error message from API
@@ -173,6 +206,8 @@ const VirtualAssistant = () => {
           description: displayBotMessage,
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
 
       const botMsg = {
@@ -181,8 +216,7 @@ const VirtualAssistant = () => {
         message: displayBotMessage,
       };
 
-      setMessages((prev) => [...prev, userMsg, botMsg]);
-      setInput("");
+      setMessages((prev) => [...prev, botMsg]);
 
       // Play response in selected language (if available)
       if (displayBotMessage && !displayBotMessage.startsWith("Error:")) {
@@ -329,6 +363,23 @@ const VirtualAssistant = () => {
               </div>
             </div>
           ))}
+          
+          {/* Loading indicator */}
+          {isLoading && (
+            <div className="flex gap-3">
+              <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+                <Bot className="h-4 w-4" />
+              </div>
+              <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Thinking</span>
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Input */}
@@ -341,8 +392,8 @@ const VirtualAssistant = () => {
               isRecording && "bg-destructive/10 border-destructive/30"
             )}
             onClick={toggleMic}
-            disabled={isSpeaking}
-            title={isRecording ? "Stop recording" : sttLoading ? "Processing…" : "Voice input (speech to text)"}
+            disabled={isSpeaking || isLoading}
+            title={isRecording ? "Stop recording" : sttLoading ? "Processing…" : isLoading ? "Waiting for response..." : "Voice input (speech to text)"}
           >
             {isRecording ? (
               <MicOff className="h-5 w-5 text-destructive" />
@@ -356,22 +407,27 @@ const VirtualAssistant = () => {
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
+            onKeyDown={(e) => e.key === "Enter" && !isLoading && send()}
             placeholder="Type or use mic... Describe your symptoms..."
             className="flex-1 bg-muted rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/50 border border-transparent focus:border-primary/30 transition-all"
+            disabled={isLoading}
           />
           <Button
             onClick={() => send()}
             size="icon"
             className="rounded-xl h-12 w-12 shrink-0"
-            disabled={!input.trim() || isSpeaking}
+            disabled={!input.trim() || isSpeaking || isLoading}
           >
-            <Send className="h-5 w-5" />
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
           </Button>
         </div>
-        {(isSpeaking || sttLoading) && (
+        {(isSpeaking || sttLoading || isLoading) && (
           <p className="text-muted-foreground text-xs mt-1">
-            {isSpeaking ? "Speaking…" : isRecording ? "Recording…" : "Processing speech…"}
+            {isSpeaking ? "Speaking…" : isRecording ? "Recording…" : isLoading ? "⏳ Waiting for AI response..." : "Processing speech…"}
           </p>
         )}
       </div>
