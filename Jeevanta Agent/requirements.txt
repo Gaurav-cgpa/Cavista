@@ -1,0 +1,8 @@
+google-adk
+python-dotenv
+pymongo
+apscheduler<4
+fastapi
+uvicorn[standard]
+pyngrok
+requests

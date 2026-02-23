@@ -1,0 +1,515 @@
+================================================================================
+RAG DOCUMENT 01 — SYMPTOM TO CONDITION MAPPING
+MedAssist EMR Agent | Vertex AI Data Store
+Domain: Clinical Symptom Assessment
+================================================================================
+
+PURPOSE:
+This document helps the AI agent map reported symptoms to likely clinical
+conditions, generate intelligent follow-up questions, identify red flags,
+and provide appropriate physician referral recommendations.
+
+DISCLAIMER: All mappings are for clinical decision support only. Final
+diagnosis must be made by a licensed medical professional.
+
+================================================================================
+PART 1: HEAD & NEUROLOGICAL SYMPTOMS
+================================================================================
+
+SYMPTOM: HEADACHE
+─────────────────
+Pattern 1 — Tension Headache
+  Characteristics: Bilateral, band-like pressure, mild-moderate severity (3-6/10),
+    no nausea/vomiting, no aura, worsens with stress/screen use/poor posture.
+  Duration: 30 mins to 7 days.
+  Triggers: Stress, poor sleep, dehydration, eye strain, skipped meals.
+  Red flags: NONE typically.
+  Follow-up questions:
+    - "Is it on both sides of your head or just one?"
+    - "Does it feel like a tight band or pressure?"
+    - "Is it worse at the end of the workday?"
+    - "Any neck stiffness or shoulder tension?"
+  Likely condition: Tension-type headache (TTH)
+  Recommendation: Stress management, posture correction, hydration, OTC analgesics.
+  Refer to: GP; neurologist if chronic (>15 days/month).
+
+Pattern 2 — Migraine
+  Characteristics: Unilateral (often), throbbing/pulsating, moderate-severe (6-9/10),
+    nausea/vomiting, photophobia, phonophobia; may have visual aura (flashing
+    lights, zigzag lines) 20-30 mins before headache.
+  Duration: 4 to 72 hours untreated.
+  Triggers: Hormonal changes (menstruation), certain foods (aged cheese, red wine,
+    chocolate, MSG, processed meats), bright lights, strong smells, sleep changes.
+  Follow-up questions:
+    - "Do you see flashing lights or blind spots before the headache?"
+    - "Does light or sound bother you during the headache?"
+    - "Do you feel nauseous or vomit?"
+    - "Does it throb like a heartbeat?"
+    - "Do you have to lie down in a dark room?"
+  Likely condition: Migraine (with or without aura)
+  Recommendation: Identify and avoid triggers, dark quiet room during attack.
+  Refer to: Neurologist for prophylactic treatment if >4 attacks/month.
+
+Pattern 3 — Cluster Headache
+  Characteristics: Strictly unilateral, severe-excruciating (8-10/10), orbital/
+    periorbital, associated with ipsilateral tearing, nasal congestion, red eye,
+    restlessness. Short duration (15-180 mins) but multiple times/day in clusters
+    lasting weeks.
+  Likely condition: Cluster headache
+  Refer to: Neurologist urgently.
+
+Pattern 4 — EMERGENCY: Subarachnoid Hemorrhage
+  Characteristics: "Thunderclap" — worst headache of life, sudden onset, reaching
+    maximum severity in seconds. May have neck stiffness, vomiting, loss of
+    consciousness.
+  RED FLAG TRIGGER: "Is this the worst headache you've ever had and did it come
+    on suddenly like a thunderclap?"
+  Action: IMMEDIATE EMERGENCY — call 112. Do not wait.
+
+Pattern 5 — Meningitis Headache
+  Characteristics: Headache + fever + neck stiffness + photophobia. May have
+    petechial rash (non-blanching spots — meningococcal).
+  RED FLAG TRIGGER: Headache + fever + neck stiffness together.
+  Action: IMMEDIATE EMERGENCY.
+
+Pattern 6 — Hypertensive Headache
+  Characteristics: Occipital (back of head), worse in morning, associated with
+    high BP readings, visual changes possible.
+  Follow-up: "Do you have high blood pressure? Have you checked your BP recently?"
+  Refer to: GP urgently if BP >180/120.
+
+Pattern 7 — Medication Overuse Headache
+  Characteristics: Daily or near-daily headache in patient using pain medications
+    >10-15 days/month. Headache improves briefly with medication but returns.
+  Follow-up: "How often do you take pain medication for headaches?"
+  Condition: Medication overuse headache (MOH / rebound headache)
+  Refer to: Neurologist for withdrawal management.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: DIZZINESS / VERTIGO
+─────────────────────────────────────────────────────────────────────────────
+Differentiate first: Vertigo (room spinning) vs Lightheadedness (about to faint)
+vs Disequilibrium (balance problem).
+
+Pattern 1 — BPPV (Benign Paroxysmal Positional Vertigo)
+  Characteristics: Brief (seconds to 1-2 minutes) spinning sensation triggered
+    by head position change (rolling over in bed, looking up, bending down).
+    No hearing loss, no tinnitus.
+  Likely condition: BPPV — most common cause of vertigo
+  Refer to: ENT or physiotherapist (Epley manoeuvre is curative).
+
+Pattern 2 — Vestibular Neuritis / Labyrinthitis
+  Characteristics: Sudden severe vertigo lasting days, worsened by movement.
+    May have hearing loss (labyrinthitis). Often preceded by viral illness.
+  Likely condition: Vestibular neuritis / labyrinthitis
+  Refer to: ENT.
+
+Pattern 3 — Ménière's Disease
+  Characteristics: Episodic vertigo lasting 20 mins to hours + unilateral
+    hearing loss + tinnitus (ringing) + aural fullness (ear pressure).
+  Likely condition: Ménière's disease
+  Refer to: ENT specialist.
+
+Pattern 4 — Orthostatic Hypotension
+  Characteristics: Lightheadedness/near-fainting upon standing up quickly.
+    Resolves in seconds-minutes. Common in elderly, dehydrated, or those on
+    antihypertensives.
+  Follow-up: "Does it happen specifically when you stand up from sitting or
+    lying down?"
+  Likely condition: Orthostatic hypotension
+  Refer to: GP; review medications.
+
+Pattern 5 — EMERGENCY: Central Vertigo (Stroke/TIA)
+  Characteristics: Sudden onset, persistent. Associated with double vision,
+    facial droop, limb weakness, slurred speech, difficulty walking.
+  RED FLAG TRIGGER: Any neurological symptoms with vertigo.
+  Action: IMMEDIATE EMERGENCY — call 112.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: FAINTING / SYNCOPE
+─────────────────────────────────────────────────────────────────────────────
+  Vasovagal syncope: triggered by standing, pain, fear, heat. Brief loss of
+    consciousness with warning (nausea, sweating, tunnel vision). Benign.
+  Cardiac syncope: No warning. Occurs during exercise. Associated with
+    palpitations or chest pain. REFER URGENTLY to cardiologist.
+  RED FLAG: Syncope during exertion or associated with chest pain/palpitations.
+
+================================================================================
+PART 2: CHEST SYMPTOMS
+================================================================================
+
+SYMPTOM: CHEST PAIN
+───────────────────
+Pattern 1 — EMERGENCY: Acute Coronary Syndrome (Heart Attack / Unstable Angina)
+  Characteristics: Central/left-sided crushing, pressure, or tightness.
+    Radiation to left arm, jaw, neck, or shoulder. Associated diaphoresis
+    (sweating), nausea, vomiting, dyspnea. May present atypically in women
+    and diabetics (fatigue, epigastric pain, jaw pain only).
+  Duration: >20 minutes (AMI), relieved by GTN (angina).
+  RED FLAG TRIGGER: Chest pain + radiation + sweating/nausea.
+  Action: IMMEDIATE EMERGENCY — call 112. Chew aspirin 325mg if available
+    and no allergy.
+  Refer to: Emergency department immediately.
+
+Pattern 2 — Stable Angina
+  Characteristics: Exertional chest tightness/pressure, relieved by rest or
+    GTN within 5 minutes. Predictable, reproducible.
+  Follow-up: "Does the chest pain come on when you exercise or climb stairs?
+    Does it go away when you rest?"
+  Likely condition: Stable angina pectoris
+  Refer to: Cardiologist — stress test, angiography may be needed.
+
+Pattern 3 — EMERGENCY: Pulmonary Embolism (PE)
+  Characteristics: Sudden-onset pleuritic chest pain (sharp, worse with
+    breathing), dyspnea, tachycardia, may have haemoptysis. Risk factors:
+    recent immobility/surgery/long-haul flight, DVT, oral contraceptive use,
+    cancer.
+  RED FLAG TRIGGER: Sudden chest pain + breathlessness + recent immobility.
+  Action: IMMEDIATE EMERGENCY.
+
+Pattern 4 — GERD / Acid Reflux (Oesophageal)
+  Characteristics: Burning retrosternal pain, worse after meals, lying down,
+    spicy/fatty food. Associated with regurgitation, sour taste, belching.
+    Relieved by antacids.
+  Follow-up: "Is it a burning sensation? Is it worse after eating or when
+    you lie down?"
+  Likely condition: GERD / gastro-oesophageal reflux disease
+  Refer to: GP; gastroenterologist if persistent.
+
+Pattern 5 — Musculoskeletal Chest Pain (Costochondritis)
+  Characteristics: Localized, sharp, reproducible with palpation or movement.
+    Worse with deep breathing or pressing on chest wall.
+  Follow-up: "Does it hurt more when I press on your chest? Or when you twist
+    or take a deep breath?"
+  Likely condition: Costochondritis / musculoskeletal pain
+  Refer to: GP; NSAIDs usually effective.
+
+Pattern 6 — Anxiety / Panic Attack
+  Characteristics: Chest tightness/pain with palpitations, shortness of breath,
+    tingling in fingers/lips, dizziness, feeling of impending doom. Peaks
+    within 10 minutes. Associated with high anxiety or panic disorder.
+  Follow-up: "Do you feel very anxious or like something terrible is about to
+    happen during these episodes?"
+  Likely condition: Panic attack / anxiety disorder
+  Refer to: GP; psychiatrist or psychologist.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: PALPITATIONS
+─────────────────────
+  Benign causes: Caffeine, stress, anxiety, dehydration, anaemia, thyroid.
+  Concerning features: Palpitations + syncope, palpitations at rest, irregular
+    rhythm, chest pain, dyspnea.
+  Follow-up: "Do they happen at rest or with activity? Any dizziness or
+    fainting? Do they start and stop suddenly?"
+  RED FLAG: Palpitations + syncope → Refer to cardiologist urgently (ECG needed).
+  Likely conditions: SVT, atrial fibrillation, ectopic beats, anxiety.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: SHORTNESS OF BREATH (DYSPNEA)
+───────────────────────────────────────
+  Acute onset + wheeze: Asthma exacerbation or anaphylaxis.
+  Acute onset + pleuritic pain + tachycardia: Pulmonary embolism (EMERGENCY).
+  Gradual + exertional + ankle swelling + orthopnea: Heart failure.
+  Chronic + productive cough + smoking history: COPD.
+  Exertional + young patient + wheeze: Asthma.
+  At rest in anxious patient: Hyperventilation / panic disorder.
+  Follow-up: "Can you lie flat at night? Do your ankles swell? Any cough or
+    wheezing? Did it come on suddenly or gradually?"
+  RED FLAG: Sudden severe dyspnea at rest → EMERGENCY.
+
+================================================================================
+PART 3: ABDOMINAL SYMPTOMS
+================================================================================
+
+SYMPTOM: ABDOMINAL PAIN
+────────────────────────
+Pattern 1 — GERD / Peptic Ulcer Disease
+  Location: Epigastric (upper central abdomen).
+  GERD: Burning, worse after meals, lying down. Relieved by antacids.
+  PUD: Epigastric gnawing/burning pain. Duodenal ulcer: relieved by food.
+    Gastric ulcer: worsened by food. H. pylori is common cause.
+  Follow-up: "Is it a burning pain in the upper stomach area? Is it better or
+    worse after eating?"
+  Refer to: GP; endoscopy if persistent or alarm features.
+
+Pattern 2 — Appendicitis
+  Location: Starts periumbilical, migrates to right iliac fossa (RIF).
+  Characteristics: Continuous, worsening pain. Fever, nausea, vomiting.
+    Rebound tenderness (McBurney's point). Worse with movement.
+  RED FLAG TRIGGER: RIF pain + fever + worsening over hours → EMERGENCY.
+  Action: Emergency surgical evaluation immediately.
+
+Pattern 3 — Gallbladder Disease (Cholecystitis / Gallstones)
+  Location: Right upper quadrant (RUQ), may radiate to right shoulder/back.
+  Triggers: Fatty meals, large meals.
+  Characteristics: Colicky or constant RUQ pain, nausea, vomiting.
+    Fever if infected (cholecystitis).
+  Follow-up: "Is the pain in the upper right side? Is it worse after fatty
+    meals? Any yellowing of the skin or eyes?"
+  Refer to: GP/surgeon; ultrasound abdomen.
+
+Pattern 4 — Irritable Bowel Syndrome (IBS)
+  Characteristics: Crampy lower abdominal pain, relieved by defecation.
+    Associated with bloating, altered bowel habits (diarrhea OR constipation
+    OR alternating). No blood, no fever, no weight loss.
+  Triggers: Stress, certain foods (FODMAPs: wheat, dairy, onion, garlic).
+  Follow-up: "Is the pain relieved when you pass stool? Any bloating? Does
+    stress make it worse?"
+  Likely condition: IBS
+  Refer to: GP; dietitian for low-FODMAP diet.
+
+Pattern 5 — EMERGENCY: Bowel Obstruction
+  Characteristics: Colicky diffuse pain, absolute constipation (no flatus),
+    distension, vomiting (bilious or feculent).
+  RED FLAG: No bowel movement + vomiting + distension → EMERGENCY.
+
+Pattern 6 — Urinary Tract Infection (UTI) / Pyelonephritis
+  Location: Suprapubic (bladder) or loin/flank (kidney).
+  UTI: Dysuria, frequency, urgency, suprapubic pain, cloudy/smelly urine.
+  Pyelonephritis: Fever, rigors, loin pain (CVA tenderness), nausea.
+  Follow-up: "Any pain or burning when you urinate? Needing to go urgently
+    or frequently? Any fever or back pain?"
+  Refer to: GP; urine culture; urgent if febrile.
+
+Pattern 7 — Kidney Stones (Renal Colic)
+  Location: Loin to groin — severe colicky, radiation to groin/testicle/labia.
+  Characteristics: One of the most severe pains. Restless patient (cannot
+    get comfortable). Haematuria (blood in urine) in 90%.
+  Follow-up: "Does the pain come in waves? Does it move from your back towards
+    your groin? Any blood in the urine?"
+  Refer to: GP/urologist urgently; CT KUB.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: NAUSEA & VOMITING
+──────────────────────────
+  Acute + diarrhea + fever: Gastroenteritis (viral or food poisoning).
+  With headache + photophobia: Migraine or meningitis.
+  With jaundice + RUQ pain: Liver/gallbladder disease.
+  Persistent AM nausea in female of reproductive age: Pregnancy (rule out).
+  With medications: Drug-induced (metformin, opioids, antibiotics common).
+  Vomiting blood (haematemesis): EMERGENCY → GI bleed.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: DIARRHEA
+─────────────────
+  Acute (<2 weeks): Likely infectious (viral gastroenteritis, food poisoning,
+    traveler's diarrhea). Manage with hydration (ORS).
+  Bloody diarrhea: Bacterial (Salmonella, Shigella, E. coli, Campylobacter),
+    IBD, ischemic colitis. Refer urgently.
+  Chronic (>4 weeks): IBD (Crohn's, ulcerative colitis), IBS, malabsorption
+    (coeliac disease), thyroid disease. Refer to gastroenterologist.
+  RED FLAG: Blood in stool + weight loss + age >50 → colonoscopy urgently.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: CONSTIPATION
+─────────────────────
+  Functional: Diet low in fibre and water, sedentary lifestyle, IBS.
+  Drug-induced: Opioids, iron supplements, antacids (calcium/aluminium),
+    antidepressants (TCAs), antihypertensives (calcium channel blockers).
+  Hypothyroidism: Associated with fatigue, weight gain, cold intolerance.
+  RED FLAG: New constipation in >50 + blood/mucus/weight loss → colonoscopy.
+
+================================================================================
+PART 4: MUSCULOSKELETAL SYMPTOMS
+================================================================================
+
+SYMPTOM: JOINT PAIN (ARTHRALGIA / ARTHRITIS)
+─────────────────────────────────────────────
+Pattern 1 — Osteoarthritis (OA)
+  Joints: Weight-bearing (knees, hips), hands (DIPs), spine.
+  Characteristics: Pain worsens with activity, improves with rest. Morning
+    stiffness <30 minutes. Bony crepitus. No systemic features.
+  Age: Usually >50, associated with obesity.
+  Refer to: GP; physiotherapy; orthopaedic surgeon for severe cases.
+
+Pattern 2 — Rheumatoid Arthritis (RA)
+  Joints: Symmetrical small joints (MCPs, PIPs, wrists), spares DIPs.
+  Characteristics: Morning stiffness >1 hour, improves with movement.
+    Systemic features: fatigue, low-grade fever, weight loss.
+    May have subcutaneous nodules.
+  Follow-up: "Is the stiffness worst in the morning and does it loosen up
+    as the day goes on? Is it in the same joints on both sides of your body?"
+  Refer to: Rheumatologist. Early treatment prevents joint destruction.
+
+Pattern 3 — Gout
+  Joints: Monoarthritis, classically first MTP joint (big toe), ankle, knee.
+  Characteristics: Sudden onset of severe pain, swelling, redness, warmth.
+    Often at night. Triggered by alcohol, red meat, seafood, dehydration.
+    Patients cannot bear weight.
+  Follow-up: "Did the pain come on suddenly, especially overnight? Is the
+    joint red and hot? Any recent alcohol or rich food?"
+  Refer to: GP; serum uric acid; colchicine/NSAIDs acutely; allopurinol for
+    prevention.
+
+Pattern 4 — Septic Arthritis
+  Characteristics: Single joint — hot, red, swollen, extremely tender. Fever,
+    unable to move joint. EMERGENCY — joint destruction within 24-48 hours.
+  RED FLAG: Single hot swollen joint + fever → EMERGENCY orthopaedic review.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: LOW BACK PAIN
+──────────────────────
+  Mechanical (90%): Worsened with movement, relieved with rest. No neurological
+    features. Related to posture, muscle strain, disc disease.
+  Sciatica: Pain radiating down leg in L4/L5/S1 dermatomal distribution.
+    Numbness/tingling in leg. Positive straight leg raise.
+  RED FLAG (Cauda Equina Syndrome): Saddle anaesthesia (numbness around
+    anus/perineum) + bladder/bowel dysfunction + bilateral leg weakness.
+    Action: EMERGENCY neurosurgical referral.
+  Cancer/Infection: Night pain, age >50, history of cancer, weight loss,
+    fever, IV drug use — refer urgently for imaging.
+
+================================================================================
+PART 5: RESPIRATORY SYMPTOMS
+================================================================================
+
+SYMPTOM: COUGH
+──────────────
+  Acute (<3 weeks): URTI (viral), pneumonia (fever + productive cough +
+    dyspnea), COVID-19.
+  Subacute (3-8 weeks): Post-infectious, pertussis (whooping cough).
+  Chronic (>8 weeks):
+    - Dry cough: ACE inhibitor side effect, GERD, asthma (cough variant).
+    - Productive: COPD, bronchiectasis, TB.
+    - Haemoptysis (coughing blood): TB, lung cancer, PE → REFER URGENTLY.
+  Follow-up: "Is it dry or are you bringing up phlegm? What colour is it?
+    Any blood? How long have you had it?"
+  RED FLAG: Blood in sputum (haemoptysis) → urgent chest X-ray + referral.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: FEVER
+──────────────
+  With localising signs: Treat based on source (UTI → antibiotics, etc.)
+  Without localising signs:
+    - Tropical context: Malaria (India — common), dengue, typhoid, leptospirosis.
+    - Dengue features: High fever (>39°C), severe headache, retro-orbital pain,
+      rash, myalgia, thrombocytopenia.
+    - Typhoid: Stepwise fever, rose spots, relative bradycardia, splenomegaly.
+    - Malaria: Cyclical fevers (tertian/quartan), rigors, sweating, headache.
+  Follow-up: "Have you traveled to rural areas or forests recently? Any
+    mosquito exposure? Any rash with the fever?"
+  Refer to: GP; blood tests (CBC, malarial parasite, NS1 antigen for dengue,
+    Widal test for typhoid).
+
+================================================================================
+PART 6: ENDOCRINE & METABOLIC SYMPTOMS
+================================================================================
+
+SYMPTOM: FATIGUE / TIREDNESS
+─────────────────────────────
+  Hypothyroidism: Fatigue + weight gain + constipation + cold intolerance +
+    dry skin + bradycardia + depression. TSH elevated.
+  Hyperthyroidism: Fatigue + weight loss + palpitations + heat intolerance +
+    tremor + diarrhea + anxiety. TSH suppressed.
+  Diabetes: Fatigue + polyuria + polydipsia + weight loss. FBS elevated.
+  Anaemia: Fatigue + pallor + dyspnea on exertion + palpitations. Hb low.
+  Depression: Fatigue + low mood + anhedonia + sleep disturbance.
+  Chronic Fatigue Syndrome: Persistent fatigue >6 months, not relieved by
+    rest, post-exertional malaise.
+  Sleep apnea: Non-restorative sleep + snoring + daytime somnolence.
+  Follow-up: "Do you feel tired even after a full night's sleep? Any weight
+    changes? Do you feel cold more than usual? Any low mood?"
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: UNEXPLAINED WEIGHT LOSS
+─────────────────────────────────
+  Definition: >5% body weight over 6-12 months without intentional dieting.
+  With increased appetite: Hyperthyroidism, uncontrolled diabetes, malabsorption.
+  With decreased appetite: Malignancy, depression, chronic infection (TB, HIV),
+    chronic renal/liver failure.
+  RED FLAG: Any unexplained significant weight loss → full workup urgently.
+
+─────────────────────────────────────────────────────────────────────────────
+SYMPTOM: EXCESSIVE THIRST (POLYDIPSIA) & FREQUENT URINATION (POLYURIA)
+────────────────────────────────────────────────────────────────────────
+  Classic triad of diabetes: Polyuria + polydipsia + weight loss.
+  Diabetes insipidus: Extreme polyuria with very dilute urine (rare).
+  Hypercalcaemia: Polyuria + constipation + bone pain + psychiatric symptoms.
+  Follow-up: "Are you drinking much more water than usual? Do you urinate
+    very frequently, including waking at night to urinate?"
+  Refer to: GP; fasting blood glucose + HbA1c.
+
+================================================================================
+PART 7: SKIN SYMPTOMS
+================================================================================
+
+SYMPTOM: RASH
+─────────────
+  With fever + non-blanching: Meningococcal septicaemia → EMERGENCY.
+  With fever + target lesion: Lyme disease (if tick exposure).
+  With fever + maculopapular: Dengue, drug reaction, viral exanthem.
+  Vesicular (blisters): Herpes simplex, herpes zoster (shingles — dermatomal).
+  Itchy, urticarial (hives): Allergic reaction — check for anaphylaxis signs.
+  Butterfly facial rash: Systemic lupus erythematosus (SLE) — + arthritis +
+    fatigue + photosensitivity.
+  Scaly plaques (elbows/knees/scalp): Psoriasis.
+  Follow-up: "Is the rash itchy, painful, or neither? Does it blanch when
+    you press on it? Any fever accompanying it?"
+  RED FLAG: Non-blanching rash + fever → EMERGENCY.
+
+================================================================================
+PART 8: MENTAL HEALTH SYMPTOMS
+================================================================================
+
+SYMPTOM: LOW MOOD / DEPRESSION
+────────────────────────────────
+  Core features (PHQ-9 basis):
+    - Depressed mood most of the day, nearly every day
+    - Loss of interest/pleasure (anhedonia) in previously enjoyed activities
+    - Sleep disturbance (insomnia or hypersomnia)
+    - Fatigue and loss of energy
+    - Feelings of worthlessness or excessive guilt
+    - Difficulty concentrating or making decisions
+    - Psychomotor agitation or retardation
+    - Recurrent thoughts of death or suicidal ideation
+  Duration: At least 2 weeks for MDD diagnosis.
+  Severity: Mild (PHQ ≤9), Moderate (10-19), Severe (≥20).
+  RED FLAG: Any suicidal ideation → provide crisis resources immediately.
+    India crisis lines: iCall: 9152987821 | Vandrevala: 1860-2662-345
+    | NIMHANS: 080-46110007
+  Refer to: GP for mild; psychiatrist for moderate-severe; URGENT for suicidal.
+
+SYMPTOM: ANXIETY
+────────────────
+  GAD: Excessive, uncontrollable worry about multiple areas of life, most
+    days, for >6 months. Associated with muscle tension, fatigue, irritability,
+    poor concentration, sleep disturbance.
+  Panic disorder: Recurrent unexpected panic attacks. Fear of future attacks.
+    Avoidance behaviour.
+  Social anxiety: Fear of social situations, fear of embarrassment/judgment.
+  Follow-up: "Do you find yourself worrying a lot even when there's no
+    specific reason? Does your heart race or do you feel short of breath
+    during anxious moments?"
+  Refer to: GP; psychologist for CBT; psychiatrist if severe or not improving.
+
+SYMPTOM: SLEEP DISTURBANCE (INSOMNIA)
+───────────────────────────────────────
+  Primary insomnia: Difficulty initiating or maintaining sleep without
+    identifiable cause.
+  Secondary: Anxiety, depression, pain, sleep apnea, medications (steroids,
+    beta-blockers, stimulants), alcohol, caffeine.
+  Obstructive Sleep Apnea (OSA): Loud snoring + witnessed apnoeas + excessive
+    daytime sleepiness + morning headaches. Risk factors: obesity, large neck,
+    male sex. Refer for polysomnography.
+
+================================================================================
+PART 9: RED FLAG SUMMARY TABLE
+================================================================================
+
+Symptom Cluster                          | Likely Emergency         | Action
+─────────────────────────────────────────|──────────────────────────|──────────────────
+Chest pain + radiation + diaphoresis     | ACS / Heart attack       | Call 112 NOW
+Thunderclap headache                     | SAH / Brain hemorrhage   | Call 112 NOW
+Headache + fever + neck stiffness        | Meningitis               | Call 112 NOW
+Sudden weakness/speech/facial droop      | Stroke                   | Call 112 NOW
+Non-blanching rash + fever               | Meningococcal sepsis     | Call 112 NOW
+Severe SOB at rest (sudden onset)        | PE / Severe asthma       | Call 112 NOW
+RIF pain + fever + worsening             | Appendicitis             | Emergency surgery
+Single hot swollen joint + fever         | Septic arthritis         | Emergency ortho
+Saddle anaesthesia + bladder dysfunction | Cauda equina syndrome    | Emergency neuro
+Haematemesis (vomiting blood)            | Upper GI bleed           | Call 112 NOW
+Suicidal ideation                        | Mental health crisis     | Crisis line + refer
+
+================================================================================
+END OF DOCUMENT 01 — SYMPTOM TO CONDITION MAPPING
+================================================================================
